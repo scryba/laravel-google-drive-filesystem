@@ -1,0 +1,62 @@
+{
+    "name": "scryba/laravel-google-drive-filesystem",
+    "description": "Google Drive filesystem adapter for Laravel (10, 11, 12)",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "google-drive",
+        "filesystem",
+        "storage"
+    ],
+    "authors": [
+        {
+            "name": "Michael K. Laweh",
+            "email": "contact@michael.laweitech.com",
+            "homepage": "https://michael.laweitech.com/",
+            "role": "Developer"
+        }
+    ],
+    "funding": [
+        {
+            "type": "custom",
+            "url": "https://michael.laweitech.com/buy-me-a-coffee"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "illuminate/filesystem": "^10.0|^11.0|^12.0",
+        "google/apiclient": "^2.15",
+        "league/flysystem": "^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "orchestra/testbench": "^8.0|^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Scryba\\GoogleDriveFilesystem\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Scryba\\GoogleDriveFilesystem\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Scryba\\GoogleDriveFilesystem\\Providers\\GoogleDriveServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "homepage": "https://michael.laweitech.com/projects/laravel-google-drive-filesystem",
+    "readme": "README.md",
+    "support": {
+        "source": "https://github.com/scryba/laravel-google-drive-filesystem",
+        "issues": "https://github.com/scryba/laravel-google-drive-filesystem/issues"
+    }
+}
