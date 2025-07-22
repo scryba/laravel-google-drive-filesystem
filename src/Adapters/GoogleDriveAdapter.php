@@ -65,11 +65,15 @@ class GoogleDriveAdapter implements FilesystemAdapter
             $file->setName($pathInfo['basename']);
             $file->setParents([$parentId]);
 
-            $this->service->files->create($file, [
+            $createdFile = $this->service->files->create($file, [
                 'data' => $contents,
                 'mimeType' => $this->getMimeType($path),
-                'uploadType' => 'multipart'
+                'uploadType' => 'multipart',
+                'fields' => 'id'
             ]);
+
+            // Fetch the file metadata again to ensure size and other attributes are available
+            $this->service->files->get($createdFile->getId());
         } catch (\Exception $e) {
             throw UnableToWriteFile::atLocation($path, $e->getMessage(), $e);
         }
@@ -185,11 +189,14 @@ class GoogleDriveAdapter implements FilesystemAdapter
         try {
             $file = $this->getFileByPath($path);
             if (!$file) {
+                \Log::debug('[GoogleDriveAdapter] fileSize: File not found', ['path' => $path]);
                 throw new \Exception("File not found: {$path}");
             }
-
-            return new FileAttributes($path, (int) $file->getSize());
+            $size = $file->getSize();
+            \Log::debug('[GoogleDriveAdapter] fileSize', ['path' => $path, 'size' => $size, 'file' => $file]);
+            return new FileAttributes($path, (int) $size);
         } catch (\Exception $e) {
+            \Log::error('[GoogleDriveAdapter] fileSize error', ['path' => $path, 'error' => $e->getMessage()]);
             throw UnableToRetrieveMetadata::fileSize($path, $e->getMessage(), $e);
         }
     }
@@ -281,13 +288,15 @@ class GoogleDriveAdapter implements FilesystemAdapter
         
         $parentId = $parentPath === '' ? $this->rootFolderId : $this->getFolderByPath($parentPath)?->getId();
         if (!$parentId) {
+            \Log::debug('[GoogleDriveAdapter] getFileByPath: Parent folder not found', ['path' => $path, 'parentPath' => $parentPath]);
             return null;
         }
 
         $query = "name='{$fileName}' and '{$parentId}' in parents and trashed=false and mimeType!='application/vnd.google-apps.folder'";
         $files = $this->service->files->listFiles(['q' => $query])->getFiles();
-        
-        return $files[0] ?? null;
+        $file = $files[0] ?? null;
+        \Log::debug('[GoogleDriveAdapter] getFileByPath', ['path' => $path, 'file' => $file]);
+        return $file;
     }
 
     private function getFolderByPath(string $path): ?DriveFile
