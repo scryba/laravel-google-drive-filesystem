@@ -72,23 +72,13 @@ class GoogleDriveAdapter implements FilesystemAdapter
                 'fields' => 'id'
             ]);
 
-            // Retry fetching metadata until size is available (max 5 tries)
-            $maxTries = 5;
-            $delayMs = 700;
-            $fileMeta = null;
-            for ($i = 1; $i <= $maxTries; $i++) {
-                $fileMeta = $this->service->files->get($createdFile->getId(), ['fields' => 'id,size,modifiedTime']);
-                \Log::debug('[GoogleDriveAdapter] write: Fetched file metadata after upload', [
-                    'attempt' => $i,
-                    'id' => $createdFile->getId(),
-                    'size' => $fileMeta->getSize(),
-                    'modifiedTime' => $fileMeta->getModifiedTime(),
-                ]);
-                if ($fileMeta->getSize() !== null) {
-                    break;
-                }
-                usleep($delayMs * 1000); // sleep in microseconds
-            }
+            // Fetch the file metadata once after upload
+            $fileMeta = $this->service->files->get($createdFile->getId(), ['fields' => 'id,size,modifiedTime']);
+            \Log::debug('[GoogleDriveAdapter] write: Fetched file metadata after upload', [
+                'id' => $createdFile->getId(),
+                'size' => $fileMeta->getSize(),
+                'modifiedTime' => $fileMeta->getModifiedTime(),
+            ]);
         } catch (\Exception $e) {
             \Log::error('[GoogleDriveAdapter] write error', ['path' => $path, 'error' => $e->getMessage()]);
             throw UnableToWriteFile::atLocation($path, $e->getMessage(), $e);
