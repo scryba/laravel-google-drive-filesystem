@@ -33,9 +33,6 @@ Add your Google Drive credentials to your `.env` file. For a detailed step-by-st
 
 ## Usage
 
-> **Note:**
-> Google Drive may not immediately report file sizes or modification dates for newly uploaded files. This is a known limitation of the Google Drive API. If you see a file size of 0 KB or a date of 1970/01/01 right after upload, try checking again after a few minutes. The correct metadata will eventually become available once Google finishes processing the file.
-
 After configuring, you can use the Google Drive disk in your Laravel application like this:
 
 ```php
