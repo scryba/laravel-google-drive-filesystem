@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2025-07-28
+
+### Fixed
+
+- Fixed file size and modification time retrieval issue by explicitly requesting required fields in Google Drive API calls
+- Added proper fields parameter ('id,name,size,modifiedTime,mimeType,parents') to listFiles() calls
+- Enhanced fileSize() and lastModified() methods with fallback metadata retrieval
+- Added getFileMetadata() helper method for reliable metadata fetching
+- Improved error logging and debugging for file metadata operations
+
+### Technical Details
+
+- Resolved Google Drive API issue where size and modifiedTime fields were not populated
+- Implemented workaround for googleapis/google-api-php-client#1257
+- Enhanced both getFileByPath() and listContents() methods to request complete file metadata
+
 ## [1.0.0] - 2024-06-09
 
 ### Added

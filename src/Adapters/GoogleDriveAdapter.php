@@ -183,7 +183,17 @@ class GoogleDriveAdapter implements FilesystemAdapter
                 throw new \Exception("File not found: {$path}");
             }
 
-            $timestamp = strtotime($file->getModifiedTime());
+            // If modifiedTime is null, try to get fresh metadata
+            $modifiedTime = $file->getModifiedTime();
+            if ($modifiedTime === null) {
+                \Log::debug('[GoogleDriveAdapter] lastModified: ModifiedTime is null, fetching fresh metadata', ['path' => $path]);
+                $freshFile = $this->getFileMetadata($file->getId());
+                if ($freshFile) {
+                    $modifiedTime = $freshFile->getModifiedTime();
+                }
+            }
+
+            $timestamp = strtotime($modifiedTime);
             return new FileAttributes($path, null, null, $timestamp);
         } catch (\Exception $e) {
             throw UnableToRetrieveMetadata::lastModified($path, $e->getMessage(), $e);
@@ -198,8 +208,18 @@ class GoogleDriveAdapter implements FilesystemAdapter
                 \Log::debug('[GoogleDriveAdapter] fileSize: File not found', ['path' => $path]);
                 throw new \Exception("File not found: {$path}");
             }
+
+            // If size is null or 0, try to get fresh metadata
             $size = $file->getSize();
-            \Log::debug('[GoogleDriveAdapter] fileSize', ['path' => $path, 'size' => $size, 'file' => $file]);
+            if ($size === null || $size === 0) {
+                \Log::debug('[GoogleDriveAdapter] fileSize: Size is null/0, fetching fresh metadata', ['path' => $path]);
+                $freshFile = $this->getFileMetadata($file->getId());
+                if ($freshFile) {
+                    $size = $freshFile->getSize();
+                }
+            }
+
+            \Log::debug('[GoogleDriveAdapter] fileSize', ['path' => $path, 'size' => $size]);
             return new FileAttributes($path, (int) $size);
         } catch (\Exception $e) {
             \Log::error('[GoogleDriveAdapter] fileSize error', ['path' => $path, 'error' => $e->getMessage()]);
@@ -216,7 +236,10 @@ class GoogleDriveAdapter implements FilesystemAdapter
             }
 
             $query = "'{$folderId}' in parents and trashed=false";
-            $files = $this->service->files->listFiles(['q' => $query])->getFiles();
+            $files = $this->service->files->listFiles([
+                'q' => $query,
+                'fields' => 'files(id,name,size,modifiedTime,mimeType,parents)'
+            ])->getFiles();
 
             foreach ($files as $file) {
                 $filePath = $path === '' ? $file->getName() : $path . '/' . $file->getName();
@@ -299,7 +322,10 @@ class GoogleDriveAdapter implements FilesystemAdapter
         }
 
         $query = "name='{$fileName}' and '{$parentId}' in parents and trashed=false and mimeType!='application/vnd.google-apps.folder'";
-        $files = $this->service->files->listFiles(['q' => $query])->getFiles();
+        $files = $this->service->files->listFiles([
+            'q' => $query,
+            'fields' => 'files(id,name,size,modifiedTime,mimeType,parents)'
+        ])->getFiles();
         $file = $files[0] ?? null;
         \Log::debug('[GoogleDriveAdapter] getFileByPath', ['path' => $path, 'file' => $file]);
         return $file;
@@ -383,5 +409,24 @@ class GoogleDriveAdapter implements FilesystemAdapter
         ];
 
         return $mimeTypes[$extension] ?? 'application/octet-stream';
+    }
+
+    /**
+     * Get file metadata with all required fields
+     * This method ensures that size and modifiedTime are properly retrieved
+     */
+    private function getFileMetadata(string $fileId): ?DriveFile
+    {
+        try {
+            return $this->service->files->get($fileId, [
+                'fields' => 'id,name,size,modifiedTime,mimeType,parents'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('[GoogleDriveAdapter] getFileMetadata error', [
+                'fileId' => $fileId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
     }
 }
