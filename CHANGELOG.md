@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.2] - 2025-07-28
+
+### Changed
+
+- Removed outdated file size limitation notice from README.md
+- Documentation now reflects that file sizes and modification dates work correctly immediately
+
 ## [1.1.1] - 2025-07-28
 
 ### Fixed
