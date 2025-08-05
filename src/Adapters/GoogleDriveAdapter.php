@@ -74,11 +74,14 @@ class GoogleDriveAdapter implements FilesystemAdapter
 
             // Fetch the file metadata once after upload
             $fileMeta = $this->service->files->get($createdFile->getId(), ['fields' => 'id,size,modifiedTime']);
-            \Log::debug('[GoogleDriveAdapter] write: Fetched file metadata after upload', [
-                'id' => $createdFile->getId(),
-                'size' => $fileMeta->getSize(),
-                'modifiedTime' => $fileMeta->getModifiedTime(),
-            ]);
+            
+            if (config('google-drive.log_payload', config('app.debug', false))) {
+                \Log::debug('[GoogleDriveAdapter] write: Fetched file metadata after upload', [
+                    'id' => $createdFile->getId(),
+                    'size' => $fileMeta->getSize(),
+                    'modifiedTime' => $fileMeta->getModifiedTime(),
+                ]);
+            }
         } catch (\Exception $e) {
             \Log::error('[GoogleDriveAdapter] write error', ['path' => $path, 'error' => $e->getMessage()]);
             throw UnableToWriteFile::atLocation($path, $e->getMessage(), $e);
@@ -186,7 +189,9 @@ class GoogleDriveAdapter implements FilesystemAdapter
             // If modifiedTime is null, try to get fresh metadata
             $modifiedTime = $file->getModifiedTime();
             if ($modifiedTime === null) {
-                \Log::debug('[GoogleDriveAdapter] lastModified: ModifiedTime is null, fetching fresh metadata', ['path' => $path]);
+                if (config('google-drive.debug', config('app.debug', false))) {
+                    \Log::debug('[GoogleDriveAdapter] lastModified: ModifiedTime is null, fetching fresh metadata', ['path' => $path]);
+                }
                 $freshFile = $this->getFileMetadata($file->getId());
                 if ($freshFile) {
                     $modifiedTime = $freshFile->getModifiedTime();
@@ -205,21 +210,27 @@ class GoogleDriveAdapter implements FilesystemAdapter
         try {
             $file = $this->getFileByPath($path);
             if (!$file) {
-                \Log::debug('[GoogleDriveAdapter] fileSize: File not found', ['path' => $path]);
+                if (config('google-drive.debug', config('app.debug', false))) {
+                    \Log::debug('[GoogleDriveAdapter] fileSize: File not found', ['path' => $path]);
+                }
                 throw new \Exception("File not found: {$path}");
             }
 
             // If size is null or 0, try to get fresh metadata
             $size = $file->getSize();
             if ($size === null || $size === 0) {
-                \Log::debug('[GoogleDriveAdapter] fileSize: Size is null/0, fetching fresh metadata', ['path' => $path]);
+                if (config('google-drive.debug', config('app.debug', false))) {
+                    \Log::debug('[GoogleDriveAdapter] fileSize: Size is null/0, fetching fresh metadata', ['path' => $path]);
+                }
                 $freshFile = $this->getFileMetadata($file->getId());
                 if ($freshFile) {
                     $size = $freshFile->getSize();
                 }
             }
 
-            \Log::debug('[GoogleDriveAdapter] fileSize', ['path' => $path, 'size' => $size]);
+            if (config('google-drive.debug', config('app.debug', false))) {
+                \Log::debug('[GoogleDriveAdapter] fileSize', ['path' => $path, 'size' => $size]);
+            }
             return new FileAttributes($path, (int) $size);
         } catch (\Exception $e) {
             \Log::error('[GoogleDriveAdapter] fileSize error', ['path' => $path, 'error' => $e->getMessage()]);
@@ -317,7 +328,9 @@ class GoogleDriveAdapter implements FilesystemAdapter
         
         $parentId = $parentPath === '' ? $this->rootFolderId : $this->getFolderByPath($parentPath)?->getId();
         if (!$parentId) {
-            \Log::debug('[GoogleDriveAdapter] getFileByPath: Parent folder not found', ['path' => $path, 'parentPath' => $parentPath]);
+            if (config('google-drive.debug', config('app.debug', false))) {
+                \Log::debug('[GoogleDriveAdapter] getFileByPath: Parent folder not found', ['path' => $path, 'parentPath' => $parentPath]);
+            }
             return null;
         }
 
@@ -327,7 +340,10 @@ class GoogleDriveAdapter implements FilesystemAdapter
             'fields' => 'files(id,name,size,modifiedTime,mimeType,parents)'
         ])->getFiles();
         $file = $files[0] ?? null;
-        \Log::debug('[GoogleDriveAdapter] getFileByPath', ['path' => $path, 'file' => $file]);
+        
+        if (config('google-drive.log_payload', config('app.debug', false))) {
+            \Log::debug('[GoogleDriveAdapter] getFileByPath', ['path' => $path, 'file' => $file]);
+        }
         return $file;
     }
 
@@ -422,10 +438,12 @@ class GoogleDriveAdapter implements FilesystemAdapter
                 'fields' => 'id,name,size,modifiedTime,mimeType,parents'
             ]);
         } catch (\Exception $e) {
-            \Log::error('[GoogleDriveAdapter] getFileMetadata error', [
-                'fileId' => $fileId,
-                'error' => $e->getMessage()
-            ]);
+            if (config('google-drive.debug', config('app.debug', false))) {
+                \Log::error('[GoogleDriveAdapter] getFileMetadata error', [
+                    'fileId' => $fileId,
+                    'error' => $e->getMessage()
+                ]);
+            }
             return null;
         }
     }

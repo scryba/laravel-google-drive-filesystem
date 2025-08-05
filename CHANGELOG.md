@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.3] - 2025-01-27
+
+### Fixed
+
+- **Production Debug Logging Issue**: Fixed hardcoded debug logging that was executing in production environments
+- Added configurable debug logging options to prevent unnecessary log output in production
+- Implemented conditional logging based on configuration settings
+
+### Added
+
+- New configuration options for debug logging control:
+  - `GOOGLE_DRIVE_DEBUG`: Enable detailed debug logging for operations (defaults to `APP_DEBUG`)
+  - `GOOGLE_DRIVE_LOG_PAYLOAD`: Enable logging of HTTP payloads and detailed operation info (defaults to `APP_DEBUG`)
+- Updated configuration file with debug logging settings
+- Enhanced README.md with environment variable documentation
+
+### Changed
+
+- All debug logging statements now respect configuration settings
+- Error logging for non-critical operations is now conditional
+- Follows the same pattern as other packages in the ecosystem for consistent debug logging behavior
+
 ## [1.1.2] - 2025-07-28
 
 ### Changed

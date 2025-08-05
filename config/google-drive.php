@@ -27,4 +27,26 @@ return [
     |
     */
     'folder_id' => env('GOOGLE_DRIVE_FOLDER_ID'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Debug Logging
+    |--------------------------------------------------------------------------
+    |
+    | If true, logs detailed debug info for Google Drive operations.
+    | Defaults to app.debug, but can be overridden here.
+    |
+    */
+    'debug' => env('GOOGLE_DRIVE_DEBUG', env('APP_DEBUG', false)),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Log Payload
+    |--------------------------------------------------------------------------
+    |
+    | If true, logs HTTP payload and detailed operation information.
+    | Defaults to app.debug, but can be overridden here.
+    |
+    */
+    'log_payload' => env('GOOGLE_DRIVE_LOG_PAYLOAD', env('APP_DEBUG', false)),
 ];

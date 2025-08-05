@@ -3,35 +3,72 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/scryba/laravel-google-drive-filesystem.svg?style=flat-square)](https://packagist.org/packages/scryba/laravel-google-drive-filesystem)
 [![Total Downloads](https://img.shields.io/packagist/dt/scryba/laravel-google-drive-filesystem.svg?style=flat-square)](https://packagist.org/packages/scryba/laravel-google-drive-filesystem)
 [![License](https://img.shields.io/packagist/l/scryba/laravel-google-drive-filesystem.svg?style=flat-square)](https://packagist.org/packages/scryba/laravel-google-drive-filesystem)
+[![PHP Version](https://img.shields.io/packagist/php-v/scryba/laravel-google-drive-filesystem.svg?style=flat-square)](https://packagist.org/packages/scryba/laravel-google-drive-filesystem)
+[![Laravel Version](https://img.shields.io/badge/Laravel-10.x%20%7C%2011.x%20%7C%2012.x-orange.svg?style=flat-square)](https://laravel.com/)
 
-Google Drive filesystem adapter for Laravel 10, 11, and 12.
+A robust Google Drive filesystem adapter for Laravel that provides seamless integration with Google Drive as a storage disk. Features configurable debug logging, automatic folder creation, and full Laravel Filesystem API compatibility.
 
-- **Author:** Michael K. Laweh (<contact@michael.laweitech.com>)
-- **Homepage:** <https://michael.laweitech.com/>
-- **Repository:** <https://github.com/scryba/laravel-google-drive-filesystem>
-- **Funding:** [Buy me a coffee](https://michael.laweitech.com/buy-me-a-coffee)
+## ✨ Features
 
-## Quick Installation
+- 🚀 **Full Laravel Filesystem API Support** - Use Google Drive like any other Laravel disk
+- 🔧 **Configurable Debug Logging** - Control debug output in production environments
+- 📁 **Automatic Folder Creation** - Folders are created automatically when needed
+- 🔐 **Secure Authentication** - Support for both access tokens and refresh tokens
+- 📊 **Metadata Support** - File sizes, modification times, and MIME types
+- 🛡️ **Production Ready** - Proper error handling and logging configuration
+- 📚 **Comprehensive Documentation** - Detailed setup and usage guides
+
+## 📋 Requirements
+
+- PHP 8.1 or higher
+- Laravel 10.x, 11.x, or 12.x
+- Google Cloud Platform project with Drive API enabled
+
+## 🚀 Quick Installation
 
 Install via Composer:
 
-```
+```bash
 composer require scryba/laravel-google-drive-filesystem
 ```
 
 For advanced installation and VCS/development setup, see [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
-## Quick Configuration
+## ⚙️ Quick Configuration
 
 Publish the config file and set up your `.env`:
 
-```
+```bash
 php artisan vendor:publish --tag=google-drive-config
 ```
 
 Add your Google Drive credentials to your `.env` file. For a detailed step-by-step guide, see [docs/GETTING-TOKENS.md](docs/GETTING-TOKENS.md).
 
-## Usage
+### 🔑 Environment Variables
+
+```env
+# Google Drive API Credentials
+GOOGLE_DRIVE_CLIENT_ID=your-client-id
+GOOGLE_DRIVE_CLIENT_SECRET=your-client-secret
+GOOGLE_DRIVE_ACCESS_TOKEN=your-access-token
+GOOGLE_DRIVE_REFRESH_TOKEN=your-refresh-token
+GOOGLE_DRIVE_FOLDER_ID=your-folder-id
+
+# Debug Logging (optional)
+GOOGLE_DRIVE_DEBUG=false
+GOOGLE_DRIVE_LOG_PAYLOAD=false
+```
+
+#### Debug Logging Options
+
+The debug logging options default to `APP_DEBUG` but can be overridden:
+
+- **`GOOGLE_DRIVE_DEBUG`**: Enable detailed debug logging for operations (defaults to `APP_DEBUG`)
+- **`GOOGLE_DRIVE_LOG_PAYLOAD`**: Enable logging of HTTP payloads and detailed operation info (defaults to `APP_DEBUG`)
+
+> **Production Tip**: Set both debug options to `false` in production to prevent unnecessary log output.
+
+## 📖 Usage
 
 After configuring, you can use the Google Drive disk in your Laravel application like this:
 
@@ -49,19 +86,58 @@ $files = Storage::disk('google')->files('/');
 
 // Delete a file
 Storage::disk('google')->delete('example.txt');
+
+// Check if file exists
+if (Storage::disk('google')->exists('example.txt')) {
+    // File exists
+}
+
+// Get file size
+$size = Storage::disk('google')->size('example.txt');
+
+// Get last modified time
+$modified = Storage::disk('google')->lastModified('example.txt');
 ```
 
-For advanced usage, see [docs/USAGE.md](docs/USAGE.md).
+### 🗂️ Working with Folders
 
-## Laravel Compatibility
+```php
+// Create a directory (folders are created automatically when uploading files)
+Storage::disk('google')->makeDirectory('uploads/images');
 
-- Laravel 10.x, 11.x, 12.x
-- PHP 8.1+
+// List directories
+$directories = Storage::disk('google')->directories('/');
 
-## License
+// List all contents (files and folders)
+$contents = Storage::disk('google')->allFiles('/');
 
-MIT
+// Delete a directory and all its contents
+Storage::disk('google')->deleteDirectory('uploads/images');
+```
 
-## Support
+For advanced usage and more examples, see [docs/USAGE.md](docs/USAGE.md).
 
-For issues, bug reports, or feature requests, please visit the [GitHub Issues page](https://github.com/scryba/laravel-google-drive-filesystem/issues).
+## 🔧 Laravel Compatibility
+
+- **Laravel**: 10.x, 11.x, 12.x
+- **PHP**: 8.1 or higher
+- **Google API Client**: ^2.15
+- **Flysystem**: ^3.0
+
+## 📝 License
+
+This package is open-sourced software licensed under the [MIT license](LICENSE).
+
+## 🤝 Support
+
+- **Author**: Michael K. Laweh (<contact@michael.laweitech.com>)
+- **Homepage**: <https://michael.laweitech.com/>
+- **Repository**: <https://github.com/scryba/laravel-google-drive-filesystem>
+- **Issues**: [GitHub Issues](https://github.com/scryba/laravel-google-drive-filesystem/issues)
+- **Funding**: [Buy me a coffee](https://michael.laweitech.com/buy-me-a-coffee)
+
+## 📚 Documentation
+
+- [Installation Guide](docs/INSTALLATION.md)
+- [Getting Google Drive Tokens](docs/GETTING-TOKENS.md)
+- [Advanced Usage](docs/USAGE.md)

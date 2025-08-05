@@ -23,24 +23,44 @@ class GoogleDriveServiceProvider extends ServiceProvider
         ], 'google-drive-config');
 
         Storage::extend('google', function ($app, $config) {
+            // Validate required configuration
+            if (empty($config['client_id'])) {
+                throw new \InvalidArgumentException('Google Drive client_id is required');
+            }
+            
+            if (empty($config['client_secret'])) {
+                throw new \InvalidArgumentException('Google Drive client_secret is required');
+            }
+
             $client = new Client();
             
             // Set up Google API client
             $client->setClientId($config['client_id']);
             $client->setClientSecret($config['client_secret']);
-            $client->setRedirectUri($config['redirect_uri']);
+            $client->setRedirectUri($config['redirect_uri'] ?? 'http://localhost');
             $client->setAccessType('offline');
             $client->setApprovalPrompt('force');
             $client->setScopes(['https://www.googleapis.com/auth/drive']);
 
             // Handle authentication tokens
             if (!empty($config['refresh_token'])) {
-                // Fetch and set the access token using the refresh token
-                $accessToken = $client->fetchAccessTokenWithRefreshToken($config['refresh_token']);
-                $client->setAccessToken($accessToken);
+                try {
+                    // Fetch and set the access token using the refresh token
+                    $accessToken = $client->fetchAccessTokenWithRefreshToken($config['refresh_token']);
+                    $client->setAccessToken($accessToken);
+                } catch (\Exception $e) {
+                    if (config('google-drive.debug', config('app.debug', false))) {
+                        \Log::error('[GoogleDriveServiceProvider] Failed to refresh access token', [
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                    throw new \RuntimeException('Failed to authenticate with Google Drive: ' . $e->getMessage(), 0, $e);
+                }
             } elseif (!empty($config['access_token'])) {
                 // Set the access token directly if provided
                 $client->setAccessToken($config['access_token']);
+            } else {
+                throw new \InvalidArgumentException('Either access_token or refresh_token is required for Google Drive authentication');
             }
 
             // Get folder ID from config or env
